@@ -3,6 +3,8 @@ use functional_graph::*;
 fn main() {
     summarize("DQ1 RNG", &graph_u16(dq1_rng));
     summarize("DQ2 RNG", &graph_u16(dq2_rng));
+    summarize("Wiz3 RNG (use)", &graph_u16(wiz3_rng_use));
+    summarize("Wiz3 RNG (wait)", &graph_u16(wiz3_rng_wait));
 }
 
 fn summarize(name: &str, fg: &FunctionalGraph) {
@@ -54,4 +56,20 @@ fn dq2_rng(r: u16) -> u16 {
     }
 
     crc_update(crc_update(r))
+}
+
+/// ウィザードリィ3 (FC) の乱数生成器 A (乱数使用時の更新式)。
+fn wiz3_rng_use(r: u16) -> u16 {
+    r.wrapping_mul(257).wrapping_add(1)
+}
+
+/// ウィザードリィ3 (FC) の乱数生成器 B (割り込み待ち中の更新式)。
+fn wiz3_rng_wait(r: u16) -> u16 {
+    let mut lo = u8::try_from(r & 0xFF).unwrap();
+    let mut hi = u8::try_from(r >> 8).unwrap();
+
+    lo = lo.wrapping_add(1);
+    hi = hi.wrapping_mul(5).wrapping_add(1);
+
+    u16::from(lo) | (u16::from(hi) << 8)
 }
